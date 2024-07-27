@@ -19,6 +19,10 @@ func (db db) decodeStrList(input string) ([]int, error) {
 	return res, nil
 }
 func (db db) encodeIntList(input []int) string {
+	if len(input) == 0 {
+		return ""
+	}
+
 	var res string
 	for _, num := range input {
 		str := strconv.Itoa(num)
@@ -26,4 +30,10 @@ func (db db) encodeIntList(input []int) string {
 	}
 	res = res[:len(res)-1]
 	return res
+}
+
+func (db db) findCloserRating(rating int) (begin int, end int) {
+	roundedRating := rating - rating%ratingGroup
+
+	return roundedRating - possibleDiff, roundedRating + possibleDiff
 }

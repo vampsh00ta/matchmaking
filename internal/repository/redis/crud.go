@@ -17,16 +17,18 @@ import (
 //
 //	queue : {
 //		0: [tgs...],
-//	 500: [tgs...]
-//
+//	 100: [tgs...]
+//	 200: [tgs...]
+
 // ..
 // ..
 // 10000: [tgs...]
 // }
 const (
-	queueKey = "search-queue"
-
-	separator = ";"
+	queueKey     = "search-queue"
+	ratingGroup  = 100
+	possibleDiff = 500
+	separator    = ";"
 )
 
 func (d db) AddUserToQueue(ctx context.Context, rating, tgID int) error {

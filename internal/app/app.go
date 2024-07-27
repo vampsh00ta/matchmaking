@@ -10,6 +10,8 @@ import (
 
 	//httphandler "matchmaking/internal/handler/http"
 	psqlrep "matchmaking/internal/repository/postgres_repository"
+	redisrep "matchmaking/internal/repository/redis"
+
 	"matchmaking/pkg/client"
 )
 
@@ -35,7 +37,7 @@ func Run(cfg *config.Config) {
 		Password: cfg.Redis.Password,
 		DB:       cfg.Redis.Db,
 	})
-	redrep := redisorep.New(clientRedis)
+	redrep := redisrep.New(clientRedis)
 	//r, err := psqlrep.GetRating(ctx, 1)
 	//fmt.Println(r, err)
 	//rep = rep
@@ -43,7 +45,8 @@ func Run(cfg *config.Config) {
 	//matchmaking, err := rep.GetRating(ctx, 100)
 	//fmt.Println(matchmaking, err)
 	//
-	srvc := service.New(psqlrep)
+	srvc := service.New(psqlrep, redrep)
+	fmt.Println(srvc.FindMatch(ctx, 1))
 	//
 	//trptLogger := logger.Sugar()
 	//handlers := httphandler.New(srvc, trptLogger)

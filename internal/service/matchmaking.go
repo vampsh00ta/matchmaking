@@ -1,6 +1,9 @@
 package service
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 //type Service interface {
 //	FindMatch(ctx context.Context,tgID int) error
@@ -23,7 +26,10 @@ func (s service) FindMatch(ctx context.Context, tgID int) (int, error) {
 		return -1, nil
 	}
 	id := s.findLeastDiff(tgID, currIDs...)
-	if err := s.redis.DeleteUsersFromQueue(ctx, rating, tgID, id); err != nil {
+	if id == tgID {
+		return -1, errors.New("already searching fight")
+	}
+	if err := s.redis.DeleteUserFromQueue(ctx, rating, id); err != nil {
 		return -1, nil
 	}
 	return id, nil
