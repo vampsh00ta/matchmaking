@@ -1,0 +1,27 @@
+app:
+  name: 'matchmaking'
+  version: '0.0.1'
+
+http:
+  port: '8080'
+
+logger:
+  log_level: 'debug'
+  rollbar_env: 'clean'
+
+postgres:
+  username: "rating"
+  password: "rating"
+  host: "localhost"
+  port: "5432"
+  name: "rating"
+  pool_max: 10
+
+redis:
+  address: "localhost:6379"
+  db: 0
+  password: ""
+
+#rabbitmq:
+#  rpc_server_exchange: 'rpc_server'
+#  rpc_client_exchange: 'rpc_client'
