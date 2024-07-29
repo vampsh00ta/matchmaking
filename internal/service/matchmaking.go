@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"matchmaking/internal/entity"
-	"math"
 )
 
 //type Service interface {
@@ -13,7 +12,8 @@ import (
 //}
 
 const (
-	okDiff = 500
+	okDiff        = 500
+	baseMmrChange = 50
 )
 
 func (s service) FindMatch(ctx context.Context, tgID int) (int, error) {
@@ -47,22 +47,25 @@ func (s service) FindMatch(ctx context.Context, tgID int) (int, error) {
 	return foundUser.TgID, nil
 }
 
-func (s service) findLeastDiff(newUser entity.User, users ...entity.User) entity.User {
-	var res entity.User
-	res.TgID = -1
-	currDiff := okDiff
-
-	for _, user := range users {
-		floatDiff := float64(newUser.Rating - user.Rating)
-		if int(math.Abs(floatDiff)) <= currDiff {
-			currDiff = newUser.Rating - user.Rating
-			res = user
-		}
-	}
-	return res
-}
-
 func (s service) MatchResult(ctx context.Context, tgIDWinner, tgIDLoser int) error {
-	//TODO implement me
-	panic("implement me")
+	winnerRating, err := s.psql.GetRating(ctx, tgIDWinner)
+	if err != nil {
+		return err
+	}
+	loserRating, err := s.psql.GetRating(ctx, tgIDLoser)
+	if err != nil {
+		return err
+	}
+	resultChangeMmr := s.calculateRatingChange(winnerRating, loserRating)
+
+	//add transactions
+	//winner
+	if s.psql.UpdateRating(ctx, tgIDWinner, resultChangeMmr); err != nil {
+		return err
+	}
+	//loser
+	if s.psql.UpdateRating(ctx, tgIDLoser, -resultChangeMmr); err != nil {
+		return err
+	}
+	return nil
 }
