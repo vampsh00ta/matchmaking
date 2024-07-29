@@ -12,7 +12,7 @@ type service struct {
 	redis iredis.Repository
 }
 
-func New(psql ipsql.Repository, redis iredis.Repository) isrvc.Service {
+func New(psql ipsql.Repository, redis iredis.Repository) isrvc.Matchmaking {
 	return &service{
 		psql:  psql,
 		redis: redis,

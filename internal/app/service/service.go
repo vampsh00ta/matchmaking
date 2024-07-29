@@ -2,7 +2,7 @@ package service
 
 import "context"
 
-type Service interface {
+type Matchmaking interface {
 	FindMatch(ctx context.Context, tgID int) (int, error)
 	MatchResult(ctx context.Context, tgIDWinner, tgIDLoser int) error
 }

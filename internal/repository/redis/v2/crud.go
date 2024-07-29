@@ -70,11 +70,26 @@ func (d db) DeleteUsersFromQueue(ctx context.Context, tgIDs ...int) error {
 }
 
 func (d db) GetUsersInQueue(ctx context.Context) ([]entity.User, error) {
-	var users []entity.User
-
-	if err := d.client.HGetAll(ctx, queueKey).Scan(&users); err != nil {
+	m, err := d.client.HGetAll(ctx, queueKey).Result()
+	if err != nil {
 		return nil, err
 	}
-
-	return users, nil
+	res := make([]entity.User, len(m))
+	var i int
+	for key, value := range m {
+		tgID, err := strconv.Atoi(key)
+		if err != nil {
+			return nil, err
+		}
+		rating, err := strconv.Atoi(value)
+		if err != nil {
+			return nil, err
+		}
+		res[i] = entity.User{
+			TgID:   tgID,
+			Rating: rating,
+		}
+		i++
+	}
+	return res, nil
 }
