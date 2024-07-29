@@ -1,8 +1,8 @@
-package mongodb
+package v2
 
 import (
 	"github.com/redis/go-redis/v9"
-	iredis "matchmaking/internal/app/repository/redis"
+	iredis "matchmaking/internal/app/repository/redis/v2"
 )
 
 type db struct {
