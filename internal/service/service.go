@@ -2,7 +2,7 @@ package service
 
 import (
 	ipsql "matchmaking/internal/app/repository/psql"
-	iredis "matchmaking/internal/app/repository/redis"
+	iredis "matchmaking/internal/app/repository/redis/v2"
 
 	isrvc "matchmaking/internal/app/service"
 )
