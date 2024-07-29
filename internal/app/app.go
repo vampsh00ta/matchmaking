@@ -3,15 +3,21 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
+	"matchmaking/internal/handler/grpc/pb"
+	"net"
+
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"matchmaking/config"
+
+	grpchandlers "matchmaking/internal/handler/grpc"
+	redisrep "matchmaking/internal/repository/redis/v2"
 	"matchmaking/internal/service"
 
 	//httphandler "matchmaking/internal/handler/http"
 	psqlrep "matchmaking/internal/repository/postgres_repository"
-	redisrep "matchmaking/internal/repository/redis"
-
 	"matchmaking/pkg/client"
 )
 
@@ -38,6 +44,11 @@ func Run(cfg *config.Config) {
 		DB:       cfg.Redis.Db,
 	})
 	redrep := redisrep.New(clientRedis)
+	//err = redrep.AddUserToQueue(ctx, entity.User{1, 1})
+	//fmt.Println(err)
+
+	//u, err := redrep.GetUsersInQueue(ctx)
+	//fmt.Println(u, err)
 	//r, err := psqlrep.GetRating(ctx, 1)
 	//fmt.Println(r, err)
 	//rep = rep
@@ -46,20 +57,18 @@ func Run(cfg *config.Config) {
 	//fmt.Println(matchmaking, err)
 	//
 	srvc := service.New(psqlrep, redrep)
-	fmt.Println(srvc.FindMatch(ctx, 1))
+	//fmt.Println(srvc.MatchResult(ctx, 1, 2))
 	//
 	//trptLogger := logger.Sugar()
-	//handlers := httphandler.New(srvc, trptLogger)
-	//
-	//logger.Info("Listening...")
-	//server := &http.Server{Addr: ":" + cfg.HTTP.Port, Handler: handlers, ReadHeaderTimeout: 2 * time.Second}
-	//
-	//go func() {
-	//	if err := server.ListenAndServe(); err != nil {
-	//		logger.Fatal(err.Error())
-	//	}
-	//}()
-	//stop := make(chan os.Signal, 1)
-	//signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGTERM)
-	//<-stop
+	lis, err := net.Listen("tcp", ":8000")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	matchMakingServer := grpchandlers.New(srvc)
+	pb.RegisterMatchmakingServer(s, matchMakingServer)
+	log.Printf("server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }
