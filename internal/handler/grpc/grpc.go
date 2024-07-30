@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"matchmaking/internal/app/service"
@@ -15,6 +16,10 @@ type serverAPI struct {
 
 func New(matchmaking service.Matchmaking) *serverAPI {
 	return &serverAPI{matchmaking: matchmaking}
+}
+func Register(s *grpc.Server, matchmaking *serverAPI) {
+	pb.RegisterMatchmakingServer(s, matchmaking)
+
 }
 
 func (s *serverAPI) FindMatch(ctx context.Context, in *pb.FindMatchRequest) (*pb.FindMatchResponse, error) {

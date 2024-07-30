@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"matchmaking/internal/handler/grpc/pb"
 	"net"
 
 	"github.com/redis/go-redis/v9"
@@ -57,7 +56,7 @@ func Run(cfg *config.Config) {
 	}
 	s := grpc.NewServer()
 	matchMakingServer := grpchandlers.New(srvc)
-	pb.RegisterMatchmakingServer(s, matchMakingServer)
+	grpchandlers.Register(s, matchMakingServer)
 	sugar.Infof("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		sugar.Fatalf("failed to serve: %v", err)
