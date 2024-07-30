@@ -1,4 +1,3 @@
-PROJECTNAME=matchmaking
 
-init:
-	find . -type  f -exec sed -i '' -e's/matchmaking/$(PROJECTNAME)/g' {} + -not -path "Makefile"
+proto:
+	protoc -I  pb --go_out=./ --go_opt=paths=source_relative --go-grpc_out=./ --go-grpc_opt=paths=source_relative

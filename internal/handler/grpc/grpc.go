@@ -26,6 +26,7 @@ func Register(s *grpc.Server, matchmaking *serverAPI) {
 
 func (s *serverAPI) FindMatch(ctx context.Context, in *pb.FindMatchRequest) (*pb.FindMatchResponse, error) {
 	methodName := "FindMatch"
+
 	if in.TgID == 0 {
 
 		s.l.Error(methodName, status.Error(codes.InvalidArgument, "tg_id is required"))
