@@ -34,8 +34,7 @@ func (s *serverAPI) FindMatch(ctx context.Context, in *pb.FindMatchRequest) (*pb
 
 	foundTgID, err := s.matchmaking.FindMatch(ctx, int(in.TgID))
 	if err != nil {
-		s.l.Error(methodName, err)
-
+		s.l.Error(methodName, zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	s.l.Info(methodName, zap.String("status", "ok"))
@@ -52,7 +51,7 @@ func (s *serverAPI) MatchResult(ctx context.Context, in *pb.MatchResultRequest) 
 	}
 
 	if err := s.matchmaking.MatchResult(ctx, int(in.TgIDWinner), int(in.TgIDLoser)); err != nil {
-		s.l.Error(methodName, err)
+		s.l.Error(methodName, zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	s.l.Info(methodName, zap.String("status", "ok"))
