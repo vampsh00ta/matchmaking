@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -11,11 +12,12 @@ import (
 
 type serverAPI struct {
 	pb.UnimplementedMatchmakingServer
+	l           *zap.SugaredLogger
 	matchmaking service.Matchmaking
 }
 
-func New(matchmaking service.Matchmaking) *serverAPI {
-	return &serverAPI{matchmaking: matchmaking}
+func New(matchmaking service.Matchmaking, l *zap.SugaredLogger) *serverAPI {
+	return &serverAPI{matchmaking: matchmaking, l: l}
 }
 func Register(s *grpc.Server, matchmaking *serverAPI) {
 	pb.RegisterMatchmakingServer(s, matchmaking)

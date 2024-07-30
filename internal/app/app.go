@@ -55,7 +55,7 @@ func Run(cfg *config.Config) {
 		sugar.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	matchMakingServer := grpchandlers.New(srvc)
+	matchMakingServer := grpchandlers.New(srvc, sugar)
 	grpchandlers.Register(s, matchMakingServer)
 	sugar.Infof("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
