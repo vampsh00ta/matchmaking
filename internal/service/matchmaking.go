@@ -51,11 +51,19 @@ func (s service) MatchResult(ctx context.Context, tgIDWinner, tgIDLoser int) err
 	if tgIDWinner == tgIDLoser {
 		return errors.New("values are equal")
 	}
-	winnerRating, err := s.psql.GetRating(ctx, tgIDWinner)
+	tx, err := s.psql.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	loserRating, err := s.psql.GetRating(ctx, tgIDLoser)
+	defer func() {
+		_ = s.psql.Rollback(tx)
+	}()
+
+	winnerRating, err := s.psql.GetRating(tx, tgIDWinner)
+	if err != nil {
+		return err
+	}
+	loserRating, err := s.psql.GetRating(tx, tgIDLoser)
 	if err != nil {
 		return err
 	}
@@ -63,11 +71,15 @@ func (s service) MatchResult(ctx context.Context, tgIDWinner, tgIDLoser int) err
 
 	//add transactions
 	//winner
-	if s.psql.UpdateRating(ctx, tgIDWinner, resultChangeMmr); err != nil {
+	if err := s.psql.UpdateRating(tx, tgIDWinner, resultChangeMmr); err != nil {
 		return err
 	}
 	//loser
-	if s.psql.UpdateRating(ctx, tgIDLoser, -resultChangeMmr); err != nil {
+	if err := s.psql.UpdateRating(tx, tgIDLoser, -resultChangeMmr); err != nil {
+		return err
+	}
+
+	if err := s.psql.Commit(tx); err != nil {
 		return err
 	}
 	return nil
