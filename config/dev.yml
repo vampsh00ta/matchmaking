@@ -3,11 +3,11 @@ app:
   version: '0.0.1'
 
 http:
-  port: '8080'
+  port: '8000'
 
 logger:
   log_level: 'debug'
-  rollbar_env: 'clean'
+  rollbar_env: 'matchmaking'
 
 postgres:
   username: "rating"
