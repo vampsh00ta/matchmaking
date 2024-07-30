@@ -48,6 +48,9 @@ func (s service) FindMatch(ctx context.Context, tgID int) (int, error) {
 }
 
 func (s service) MatchResult(ctx context.Context, tgIDWinner, tgIDLoser int) error {
+	if tgIDWinner == tgIDLoser {
+		return errors.New("values are equal")
+	}
 	winnerRating, err := s.psql.GetRating(ctx, tgIDWinner)
 	if err != nil {
 		return err
