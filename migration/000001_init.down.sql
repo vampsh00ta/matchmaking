@@ -1,1 +1,1 @@
-drop table user_matchmaking
+drop table user_rating

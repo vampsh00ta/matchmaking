@@ -26,6 +26,7 @@ type (
 	// HTTP -.
 	HTTP struct {
 		Port string `env-required:"true" yaml:"port" env:"HTTP_PORT"`
+		Name string `env-required:"true" yaml:"name" env:"HTTP_NAME"`
 	}
 
 	// Log -.

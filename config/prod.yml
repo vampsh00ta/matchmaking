@@ -1,21 +1,27 @@
-clean:
-  name: 'clean'
-  version: '1.0.0'
+
+name: 'matchmaking'
+version: '0.0.1'
 
 http:
-  port: '8080'
+  port: '50501'
+  name: 'app'
 
 logger:
   log_level: 'debug'
-  rollbar_env: 'clean'
+  rollbar_env: 'matchmaking'
 
 postgres:
-  username: "maidtp"
-  password: "maidtp"
-  host: "localhost"
+  username: "rating"
+  password: "rating"
+  host: "db_matchmaking"
   port: "5432"
-  name: "maidtp"
+  name: "rating"
   pool_max: 10
+
+redis:
+  address: "redis:6379"
+  db: 0
+  password: ""
 
 #rabbitmq:
 #  rpc_server_exchange: 'rpc_server'
