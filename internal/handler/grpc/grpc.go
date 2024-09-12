@@ -12,12 +12,12 @@ import (
 
 type serverAPI struct {
 	pb.UnimplementedMatchmakingServer
-	l           *zap.SugaredLogger
-	matchmaking service.Matchmaking
+	l     *zap.SugaredLogger
+	Match service.Match
 }
 
-func New(matchmaking service.Matchmaking, l *zap.SugaredLogger) *serverAPI {
-	return &serverAPI{matchmaking: matchmaking, l: l}
+func New(matchmaking service.Match, l *zap.SugaredLogger) *serverAPI {
+	return &serverAPI{Match: matchmaking, l: l}
 }
 func Register(s *grpc.Server, matchmaking *serverAPI) {
 	pb.RegisterMatchmakingServer(s, matchmaking)
@@ -33,7 +33,7 @@ func (s *serverAPI) FindMatch(ctx context.Context, in *pb.FindMatchRequest) (*pb
 		return nil, status.Error(codes.InvalidArgument, "tg_id is required")
 	}
 
-	foundTgID, err := s.matchmaking.FindMatch(ctx, int(in.TgID))
+	foundTgID, err := s.Match.Find(ctx, int(in.TgID))
 	if err != nil {
 		s.l.Error(methodName, zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
@@ -51,7 +51,7 @@ func (s *serverAPI) MatchResult(ctx context.Context, in *pb.MatchResultRequest) 
 		return nil, status.Error(codes.InvalidArgument, "tg_id is required")
 	}
 
-	if err := s.matchmaking.MatchResult(ctx, int(in.TgIDWinner), int(in.TgIDLoser)); err != nil {
+	if err := s.Match.Result(ctx, int(in.TgIDWinner), int(in.TgIDLoser)); err != nil {
 		s.l.Error(methodName, zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}

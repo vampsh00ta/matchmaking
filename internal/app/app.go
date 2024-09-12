@@ -46,16 +46,16 @@ func Run(cfg *config.Config) {
 		Password: cfg.Redis.Password,
 		DB:       cfg.Redis.Db,
 	})
-	redrep := redisrep.New(clientRedis)
+	queueRep := redisrep.NewQueue(clientRedis)
 
-	srvc := service.New(psqlrep, redrep)
+	matchSrvc := service.NewMatch(psqlrep, queueRep)
 
 	lis, err := net.Listen("tcp", ":"+cfg.HTTP.Port)
 	if err != nil {
 		sugar.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	matchMakingServer := grpchandlers.New(srvc, sugar)
+	matchMakingServer := grpchandlers.New(matchSrvc, sugar)
 	grpchandlers.Register(s, matchMakingServer)
 	sugar.Infof("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {

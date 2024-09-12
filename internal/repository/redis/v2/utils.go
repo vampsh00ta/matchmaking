@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func (db db) decodeStrListToInt(input []string) ([]int, error) {
+func decodeStrListToInt(input []string) ([]int, error) {
 
 	res := make([]int, len(input))
 	for i, str := range input {
@@ -17,7 +17,7 @@ func (db db) decodeStrListToInt(input []string) ([]int, error) {
 	}
 	return res, nil
 }
-func (db db) decodeStrList(input string) ([]int, error) {
+func decodeStrList(input string) ([]int, error) {
 
 	inputList := strings.Split(input, separator)
 	res := make([]int, len(inputList))
@@ -30,7 +30,7 @@ func (db db) decodeStrList(input string) ([]int, error) {
 	}
 	return res, nil
 }
-func (db db) encodeIntList(input []int) string {
+func encodeIntList(input []int) string {
 	if len(input) == 0 {
 		return ""
 	}
@@ -44,7 +44,7 @@ func (db db) encodeIntList(input []int) string {
 	return res
 }
 
-func (db db) findCloserRating(rating int) (begin int, end int) {
+func findCloserRating(rating int) (begin int, end int) {
 	roundedRating := rating - rating%ratingGroup
 
 	return roundedRating - possibleDiff, roundedRating + possibleDiff

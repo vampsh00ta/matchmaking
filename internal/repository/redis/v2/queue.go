@@ -3,28 +3,20 @@ package v2
 import (
 	"context"
 	"errors"
+	"github.com/redis/go-redis/v9"
+	iredis "matchmaking/internal/app/repository/redis/v2"
 	"matchmaking/internal/entity"
 	"strconv"
 )
 
-//type Repository interface {
-//	AddUserToQueue(ctx context.Context, tgID, matchmaking int) error
-//	DeleteUserFromQueue(ctx context.Context, matchmaking,tgID int) error
-//	DeleteUsersFromQueue(ctx context.Context, matchmaking int, tgID ...int) error
-//	GetIDsFromQueue(ctx context.Context, tgID int) ([]int, error)
-//}
+type queue struct {
+	client *redis.Client
+}
 
-// map[key:value] structure
-//
-//	queue : {
-//		0: [tgs...],
-//	 100: [tgs...]
-//	 200: [tgs...]
+func NewQueue(client *redis.Client) iredis.Queue {
+	return &queue{client: client}
+}
 
-// ..
-// ..
-// 10000: [tgs...]
-// }
 const (
 	queueKey     = "search-queue"
 	ratingGroup  = 100
@@ -32,8 +24,8 @@ const (
 	separator    = ";"
 )
 
-func (d db) AddUserToQueue(ctx context.Context, userToAdd entity.User) error {
-	users, err := d.GetUsersInQueue(ctx)
+func (d queue) AddUser(ctx context.Context, userToAdd entity.User) error {
+	users, err := d.GetUsers(ctx)
 	if err != nil {
 		return err
 	}
@@ -49,7 +41,7 @@ func (d db) AddUserToQueue(ctx context.Context, userToAdd entity.User) error {
 
 }
 
-func (d db) DeleteUserFromQueue(ctx context.Context, tgID int) error {
+func (d queue) DeleteUserByTgID(ctx context.Context, tgID int) error {
 	tgIDStr := strconv.Itoa(tgID)
 	if err := d.client.HDel(ctx, queueKey, tgIDStr).Err(); err != nil {
 		return err
@@ -57,7 +49,7 @@ func (d db) DeleteUserFromQueue(ctx context.Context, tgID int) error {
 	return nil
 }
 
-func (d db) DeleteUsersFromQueue(ctx context.Context, tgIDs ...int) error {
+func (d queue) DeleteUsersByTgIDs(ctx context.Context, tgIDs ...int) error {
 
 	tgIDStrs := make([]string, len(tgIDs))
 	for i, tgID := range tgIDs {
@@ -69,7 +61,7 @@ func (d db) DeleteUsersFromQueue(ctx context.Context, tgIDs ...int) error {
 	return nil
 }
 
-func (d db) GetUsersInQueue(ctx context.Context) ([]entity.User, error) {
+func (d queue) GetUsers(ctx context.Context) ([]entity.User, error) {
 	m, err := d.client.HGetAll(ctx, queueKey).Result()
 	if err != nil {
 		return nil, err
