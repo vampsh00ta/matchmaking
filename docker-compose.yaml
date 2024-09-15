@@ -3,11 +3,11 @@ services:
   app:
     build:
       context: .
-    image: app_matchmaking
+    container_name: seabattle-matchmaking
     env_file:
       - .env
     ports:
-      - "50501:50501"
+      - "${HTTP_PORT}:${HTTP_PORT}"
     restart: always
     depends_on:
       db:
@@ -18,18 +18,19 @@ services:
   db:
     image: postgres:14.6
     restart: always
-    container_name: db_matchmaking
-    hostname: db_matchmaking
+    container_name: ${POSTGRES_HOST}
+    hostname: ${POSTGRES_HOST}
     environment:
-      POSTGRES_DB: "rating"
-      POSTGRES_USER: "rating"
-      POSTGRES_PASSWORD: "rating"
+      POSTGRES_DB: ${POSTGRES_DB}
+
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
       - postgres_data:/var/lib/postgres
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U rating" ]
+      test: [ "CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -39,11 +40,11 @@ services:
     image: redis:latest
     restart: always
     ports:
-      - "63790:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
     environment:
-      - REDIS_PASSWORD=""
-      - REDIS_PORT=6379
-      - REDIS_DATABASES=0
+      - REDIS_PASSWORD="${REDIS_PASSWORD}"
+      - REDIS_PORT="${REDIS_PORT}"
+      - REDIS_DATABASES="${REDIS_DATABASES}"
     healthcheck:
       test: [ "CMD-SHELL", "ping" ]
       interval: 5s
@@ -58,9 +59,15 @@ services:
       - ./migration:/migration
     links:
       - db
-    command: -path=./migration -database postgres://rating:rating@db:5432/rating?sslmode=disable up
+    depends_on:
+      db:
+        condition: service_healthy
+    command: -path=./migration -database ${POSTGRES_URL} up
 networks:
   db:
     driver: bridge
+
+
+
 volumes:
   postgres_data:

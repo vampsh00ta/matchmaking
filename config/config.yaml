@@ -1,0 +1,15 @@
+app:
+  name: 'seabattle-matchmaking'
+  version: '1.0.0'
+
+
+logger:
+  log_level: 'debug'
+  rollbar_env: 'seabattle-matchmaking'
+
+
+postgres:
+  pool_max: 10
+
+
+

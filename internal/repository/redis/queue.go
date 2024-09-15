@@ -1,10 +1,10 @@
-package v2
+package redis
 
 import (
 	"context"
 	"errors"
 	"github.com/redis/go-redis/v9"
-	iredis "matchmaking/internal/app/repository/redis/v2"
+	iredis "matchmaking/internal/app/repository/redis"
 	"matchmaking/internal/entity"
 	"strconv"
 )

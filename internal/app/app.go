@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	redisrep "matchmaking/internal/repository/redis"
 	"net"
 
 	"github.com/redis/go-redis/v9"
@@ -10,7 +11,6 @@ import (
 	"matchmaking/config"
 
 	grpchandlers "matchmaking/internal/handler/grpc"
-	redisrep "matchmaking/internal/repository/redis/v2"
 	"matchmaking/internal/service"
 
 	//httphandler "matchmaking/internal/handler/http"
@@ -39,7 +39,8 @@ func Run(cfg *config.Config) {
 		sugar.Fatalf("matchmaking - Run - postgres.New: %v", err)
 	}
 	defer pg.Close()
-	psqlrep := psqlrep.New(pg)
+	ratingRep := psqlrep.NewRating(pg)
+	txManager := psqlrep.NewPgxTxManager(pg)
 
 	clientRedis := redis.NewClient(&redis.Options{
 		Addr:     cfg.Redis.Address,
@@ -48,7 +49,7 @@ func Run(cfg *config.Config) {
 	})
 	queueRep := redisrep.NewQueue(clientRedis)
 
-	matchSrvc := service.NewMatch(psqlrep, queueRep)
+	matchSrvc := service.NewMatch(ratingRep, txManager, queueRep)
 
 	lis, err := net.Listen("tcp", ":"+cfg.HTTP.Port)
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	ipsql "matchmaking/internal/app/repository/psql"
-	iredis "matchmaking/internal/app/repository/redis/v2"
+	iredis "matchmaking/internal/app/repository/redis"
 	isrvc "matchmaking/internal/app/service"
 	"matchmaking/internal/entity"
 )
@@ -20,24 +20,26 @@ const (
 )
 
 type match struct {
-	psql  ipsql.Repository
-	queue iredis.Queue
+	rating ipsql.Rating
+	txm    ipsql.Manager
+	queue  iredis.Queue
 }
 
-func NewMatch(psql ipsql.Repository, queue iredis.Queue) isrvc.Match {
+func NewMatch(rating ipsql.Rating, txm ipsql.Manager, queue iredis.Queue) isrvc.Match {
 	return &match{
-		psql:  psql,
-		queue: queue,
+		rating: rating,
+		txm:    txm,
+		queue:  queue,
 	}
 }
 
 func (s match) Find(ctx context.Context, tgID int) (int, error) {
-	rating, err := s.psql.GetRating(ctx, tgID)
+	res, err := s.rating.GetByTgID(ctx, tgID)
 	if err != nil {
 		return -1, err
 	}
 	user := entity.User{
-		Rating: rating,
+		Rating: res,
 		TgID:   tgID,
 	}
 	currUsers, err := s.queue.GetUsers(ctx)
@@ -66,36 +68,42 @@ func (s match) Result(ctx context.Context, tgIDWinner, tgIDLoser int) error {
 	if tgIDWinner == tgIDLoser {
 		return errors.New("values are equal")
 	}
-	tx, err := s.psql.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = s.psql.Rollback(tx)
-	}()
+	//tx, err := s.ra.Begin(ctx)
 
-	winnerRating, err := s.psql.GetRating(tx, tgIDWinner)
+	var winnerRating, loserRating int
+	err := s.txm.Do(ctx, func(ctx context.Context) error {
+		var err error
+
+		winnerRating, err = s.rating.GetByTgID(ctx, tgIDWinner)
+		if err != nil {
+			return err
+		}
+		loserRating, err = s.rating.GetByTgID(ctx, tgIDLoser)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
-	loserRating, err := s.psql.GetRating(tx, tgIDLoser)
-	if err != nil {
-		return err
-	}
+
 	resultChangeMmr := calculateRatingChange(winnerRating, loserRating)
 
 	//add transactions
 	//winner
-	if err := s.psql.UpdateRating(tx, tgIDWinner, resultChangeMmr); err != nil {
-		return err
-	}
-	//loser
-	if err := s.psql.UpdateRating(tx, tgIDLoser, -resultChangeMmr); err != nil {
+	err = s.txm.Do(ctx, func(ctx context.Context) error {
+		if err := s.rating.UpdateByTgID(ctx, tgIDWinner, resultChangeMmr); err != nil {
+			return err
+		}
+		if err := s.rating.UpdateByTgID(ctx, tgIDLoser, -resultChangeMmr); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
 		return err
 	}
 
-	if err := s.psql.Commit(tx); err != nil {
-		return err
-	}
 	return nil
 }
