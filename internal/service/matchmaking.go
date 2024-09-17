@@ -7,6 +7,7 @@ import (
 	iredis "matchmaking/internal/app/repository/redis"
 	isrvc "matchmaking/internal/app/service"
 	"matchmaking/internal/entity"
+	"matchmaking/pkg/client"
 )
 
 //type Service interface {
@@ -21,11 +22,11 @@ const (
 
 type match struct {
 	rating ipsql.Rating
-	txm    ipsql.Manager
+	txm    client.Manager
 	queue  iredis.Queue
 }
 
-func NewMatch(rating ipsql.Rating, txm ipsql.Manager, queue iredis.Queue) isrvc.Match {
+func NewMatch(rating ipsql.Rating, txm client.Manager, queue iredis.Queue) isrvc.Match {
 	return &match{
 		rating: rating,
 		txm:    txm,

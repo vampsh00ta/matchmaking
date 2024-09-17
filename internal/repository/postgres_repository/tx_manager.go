@@ -2,7 +2,6 @@ package postgresrep
 
 import (
 	"context"
-	ipsql "matchmaking/internal/app/repository/psql"
 	"matchmaking/pkg/client"
 )
 
@@ -11,13 +10,13 @@ type PgxTxManager struct {
 	ctxm   client.CtxManager
 }
 
-func NewPgxTxManager(c client.Client) ipsql.Manager {
+func NewPgxTxManager(c client.Client) client.Manager {
 	return &PgxTxManager{
 		client: c,
 		ctxm:   client.NewPgxCtxManager(c),
 	}
 }
-func (m PgxTxManager) Do(ctx context.Context, f ipsql.TxFunc) error {
+func (m PgxTxManager) Do(ctx context.Context, f client.TxFunc) error {
 	tx, err := m.client.Begin(ctx)
 	if err != nil {
 		return err
